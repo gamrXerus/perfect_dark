@@ -28,9 +28,6 @@
 #include "lib/lib_317f0.h"
 #include "data.h"
 #include "types.h"
-#include "fs.h"
-#include "system.h"
-#include "mpsetups.h"
 
 // bss
 struct chrdata *g_MpAllChrPtrs[MAX_MPCHRS];
@@ -50,11 +47,6 @@ struct modeldef *var800acc28[18];
 // Forward declaractions
 struct mpweaponset g_MpWeaponSets[12];
 s32 g_MpWeaponSetNum;
-
-#ifndef PLATFORM_N64
-u8 g_MpWeaponSetRandomFilters[NUM_MPWEAPONS];
-s32 g_MpWeaponRandomFilterNum;
-#endif
 
 #if VERSION >= VERSION_NTSC_1_0
 const char var7f1b8a00[] = "||||||||||||| Starting game... players %d\n";
@@ -103,25 +95,23 @@ struct mpweapon g_MpWeapons[NUM_MPWEAPONS] = {
 #ifndef PLATFORM_N64
 	// fix X-Ray Scanner model
 	/*0x22*/ { WEAPON_XRAYSCANNER,      0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_XRAYSCANNER,     MODEL_XRAYSPECS,        256 },
-	/*0x23*/ { WEAPON_NIGHTVISION,      0,                    0,   0,                   0,  1, 0,                                MODEL_CHRNIGHTSIGHT,    256 },
-	/*0x24*/ { WEAPON_IRSCANNER,        0,                    0,   0,                   0,  1, 0,                                MODEL_MISC_IRSPECS,     256 },
 #else
 	/*0x22*/ { WEAPON_XRAYSCANNER,      0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_XRAYSCANNER,     MODEL_CHRNIGHTSIGHT,    256 },
 #endif
-	/*0x25*/ { WEAPON_CLOAKINGDEVICE,   0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_CLOAKINGDEVICE,  MODEL_CHRCLOAKER,       256 },
-	/*0x26*/ { WEAPON_COMBATBOOST,      0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_COMBATBOOST,     MODEL_CHRSPEEDPILL,     256 },
+	/*0x23*/ { WEAPON_CLOAKINGDEVICE,   0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_CLOAKINGDEVICE,  MODEL_CHRCLOAKER,       256 },
+	/*0x24*/ { WEAPON_COMBATBOOST,      0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_COMBATBOOST,     MODEL_CHRSPEEDPILL,     256 },
 #ifndef PLATFORM_N64
-	/*0x27*/ { WEAPON_PP9I,             AMMOTYPE_PISTOL,      80,  0,                   0,  1, 0,                                MODEL_CHRWPPK,          256 },
-	/*0x28*/ { WEAPON_CC13,             AMMOTYPE_PISTOL,      80,  0,                   0,  1, 0,                                MODEL_CHRTT33,          256 },
-	/*0x29*/ { WEAPON_KL01313,          AMMOTYPE_SMG,         100, 0,                   0,  1, 0,                                MODEL_CHRSKORPION,      256 },
-	/*0x2a*/ { WEAPON_KF7SPECIAL,       AMMOTYPE_RIFLE,       100, 0,                   0,  1, 0,                                MODEL_CHRKALASH,        256 },
-	/*0x2b*/ { WEAPON_ZZT,              AMMOTYPE_SMG,         100, 0,                   0,  1, 0,                                MODEL_CHRUZI,           256 },
-	/*0x2c*/ { WEAPON_DMC,              AMMOTYPE_SMG,         100, 0,                   0,  1, 0,                                MODEL_CHRMP5K,          256 },
-	/*0x2d*/ { WEAPON_AR53,             AMMOTYPE_RIFLE,       150, 0,                   0,  1, 0,                                MODEL_CHRM16,           256 },
-	/*0x2e*/ { WEAPON_RCP45,            AMMOTYPE_SMG,         150, 0,                   0,  1, 0,                                MODEL_CHRFNP90,         256 },
+	/*0x25*/ { WEAPON_PP9I,             AMMOTYPE_PISTOL,      80,  0,                   0,  1, 0,                                MODEL_CHRWPPK,          256 },
+	/*0x26*/ { WEAPON_CC13,             AMMOTYPE_PISTOL,      80,  0,                   0,  1, 0,                                MODEL_CHRTT33,          256 },
+	/*0x27*/ { WEAPON_KL01313,          AMMOTYPE_SMG,         100, 0,                   0,  1, 0,                                MODEL_CHRSKORPION,      256 },
+	/*0x28*/ { WEAPON_KF7SPECIAL,       AMMOTYPE_RIFLE,       100, 0,                   0,  1, 0,                                MODEL_CHRKALASH,        256 },
+	/*0x29*/ { WEAPON_ZZT,              AMMOTYPE_SMG,         100, 0,                   0,  1, 0,                                MODEL_CHRUZI,           256 },
+	/*0x2a*/ { WEAPON_DMC,              AMMOTYPE_SMG,         100, 0,                   0,  1, 0,                                MODEL_CHRMP5K,          256 },
+	/*0x2b*/ { WEAPON_AR53,             AMMOTYPE_RIFLE,       150, 0,                   0,  1, 0,                                MODEL_CHRM16,           256 },
+	/*0x2c*/ { WEAPON_RCP45,            AMMOTYPE_SMG,         150, 0,                   0,  1, 0,                                MODEL_CHRFNP90,         256 },
 #endif
-	/*0x2f*/ { WEAPON_MPSHIELD,         0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_SHIELD,          MODEL_CHRSHIELD,        256 },
-	/*0x30*/ { WEAPON_DISABLED }, // 0x25 on N64
+	/*0x2d*/ { WEAPON_MPSHIELD,         0,                    0,   0,                   0,  1, MPFEATURE_WEAPON_SHIELD,          MODEL_CHRSHIELD,        256 },
+	/*0x2e*/ { WEAPON_DISABLED }, // 0x25 on N64
 };
 
 #ifndef PLATFORM_N64
@@ -139,12 +129,10 @@ struct mpweapon g_MpWeapons[NUM_MPWEAPONS] = {
 	.extcontrols = true, \
 	.crosshaircolour = 0x00ff0028, \
 	.crosshairsize = 2, \
-	.crosshairedgeboundary = 0.7f, \
 	.crosshairhealth = CROSSHAIR_HEALTH_OFF, \
-	.usereloads = false, \
 }
 
-struct extplayerconfig g_PlayerExtCfg[MAX_PLAYERS] = {
+struct extplayerconfig g_PlayerExtCfg[MAX_PLAYERS] = { 
 	PLAYER_EXT_CFG_DEFAULT,
 	PLAYER_EXT_CFG_DEFAULT,
 	PLAYER_EXT_CFG_DEFAULT,
@@ -466,13 +454,25 @@ void mpPlayerSetDefaults(s32 playernum, bool autonames)
 		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_DARK_COMBAT;
 		break;
 	case 1:
+#ifdef PLATFORM_N64
 		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_CASSANDRA;
+#else // GoldenEye X Mod
+		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_DARK_LEATHER;
+#endif
 		break;
 	case 2:
+#ifdef PLATFORM_N64
 		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_CARRINGTON;
+#else // GoldenEye X Mod
+		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_DARKAQUALUNG;
+#endif
 		break;
 	case 3:
+#ifdef PLATFORM_N64
 		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_CILABTECH;
+#else // GoldenEye X Mod
+		g_PlayerConfigsArray[playernum].base.mpbodynum = MPBODY_DARKSNOW;
+#endif
 		break;
 	}
 
@@ -563,10 +563,8 @@ void mpInit(bool resetplayers)
 
 	strcpy(g_MpSetup.name, "");
 
-	if (resetplayers) {
-		for (i = 0; i < ARRAYCOUNT(g_PlayerConfigsArray); i++) {
-			mpPlayerSetDefaults(i, false);
-		}
+	for (i = 0; i < ARRAYCOUNT(g_PlayerConfigsArray); i++) {
+		mpPlayerSetDefaults(i, false);
 	}
 
 	for (i = 0; i < MAX_BOTS; i++) {
@@ -599,16 +597,6 @@ void mpInit(bool resetplayers)
 	}
 
 	g_MpSetup.chrslots = 0;
-
-	for (i = 0; i < ARRAYCOUNT(g_Menus); i++) {
-		g_Menus[i].mpsetupext.showpresets = 1;
-	}
-
-#ifndef PLATFORM_N64
-	for (i = 0; i < ARRAYCOUNT(g_MpWeapons); i++) {
-		g_MpWeaponSetRandomFilters[i] = 1;
-	}
-#endif
 }
 
 #if VERSION >= VERSION_PAL_BETA
@@ -1181,40 +1169,10 @@ void func0f18913c(void)
 	}
 }
 
-#ifndef PLATFORM_N64
-void mpSetRandomWeapons(u8 weapons[])
-{
-	s32 lockcount = 0;
-	s32 index = 0;
-	s32 i;
-
-	for (i = 0; i < NUM_MPWEAPONS; i++) {
-		if (challengeIsFeatureUnlocked(g_MpWeapons[i].unlockfeature)) {
-			if (g_MpWeaponSetRandomFilters[i] == 1) {
-				weapons[index] = i - lockcount;
-				index++;
-			}
-		} else {
-			lockcount++;
-		}
-	}
-
-	if (index == 0) {
-		weapons[0] = 0; // optionindex (shifted by unlocked weapons, but usually 0 is "Nothing")
-		g_MpWeaponRandomFilterNum = 1;
-	} else {
-		g_MpWeaponRandomFilterNum = index;
-	}
-}
-#endif
-
 void mpApplyWeaponSet(void)
 {
 	s32 i;
 	u8 *ptr;
-#ifndef PLATFORM_N64
-	u8 randomweapons[NUM_MPWEAPONS];
-#endif
 
 	if (g_MpWeaponSetNum >= 0 && g_MpWeaponSetNum < ARRAYCOUNT(g_MpWeaponSets)) {
 		if (challengeIsFeatureUnlocked(g_MpWeaponSets[g_MpWeaponSetNum].requirefeatures[0])
@@ -1252,31 +1210,17 @@ void mpApplyWeaponSet(void)
 			}
 		}
 	} else if (g_MpWeaponSetNum == WEAPONSET_RANDOM) {
-#ifdef PLATFORM_N64
 		s32 numoptions = mpGetNumWeaponOptions();
 
 		for (i = 0; i < ARRAYCOUNT(g_MpSetup.weapons); i++) {
 			mpSetWeaponSlot(i, rngRandom() % numoptions);
 		}
-#else
-		mpSetRandomWeapons(randomweapons);
-		for (i = 0; i < ARRAYCOUNT(g_MpSetup.weapons); i++) {
-			mpSetWeaponSlot(i, randomweapons[rngRandom() % g_MpWeaponRandomFilterNum]);
-		}
-#endif
 	} else if (g_MpWeaponSetNum == WEAPONSET_RANDOMFIVE) {
-#ifdef PLATFORM_N64
 		s32 numoptions = mpGetNumWeaponOptions() - 2;
 
 		for (i = 0; i < 5; i++) {
 			mpSetWeaponSlot(i, rngRandom() % numoptions + 1);
 		}
-#else
-		mpSetRandomWeapons(randomweapons);
-		for (i = 0; i < 5; i++) {
-			mpSetWeaponSlot(i, randomweapons[rngRandom() % g_MpWeaponRandomFilterNum]);
-		}
-#endif
 
 		mpSetWeaponSlot(i, mpGetNumWeaponOptions() - 1);
 	}
@@ -1413,7 +1357,11 @@ Gfx *mpRenderModalText(Gfx *gdl)
 #if VERSION >= VERSION_JPN_FINAL
 		gdl = func0f1574d0jf(gdl, &x, &y, text, g_CharsHandelGothicSm, g_FontHandelGothicSm, 0xff0000ff, 0x000000ff, viGetWidth(), viGetWidth(), 0, 0);
 #else
+#ifdef PLATFORM_N64
 		gdl = textRender(gdl, &x, &y, text, g_CharsHandelGothicSm, g_FontHandelGothicSm, 0xff0000ff, 0x000000ff, viGetWidth(), viGetWidth(), 0, 0);
+#else // GoldenEye X Mod
+		gdl = textRender(gdl, &x, &y, text, g_CharsHandelGothicSm, g_FontHandelGothicSm, 0x00a000ff, 0x000000ff, viGetWidth(), viGetWidth(), 0, 0); // Press Start
+#endif
 #endif
 
 		if (g_Vars.currentplayer->deadtimer > 0) {
@@ -1433,7 +1381,11 @@ Gfx *mpRenderModalText(Gfx *gdl)
 #if VERSION >= VERSION_JPN_FINAL
 			gdl = func0f1574d0jf(gdl, &x, &y, text, g_CharsHandelGothicSm, g_FontHandelGothicSm, 0xff0000ff, 0x000000ff, viGetWidth(), viGetWidth(), 0, 0);
 #else
+#ifdef PLATFORM_N64
 			gdl = textRender(gdl, &x, &y, text, g_CharsHandelGothicSm, g_FontHandelGothicSm, 0xff0000ff, 0x000000ff, viGetWidth(), viGetWidth(), 0, 0);
+#else // GoldenEye X Mod
+			gdl = textRender(gdl, &x, &y, text, g_CharsHandelGothicSm, g_FontHandelGothicSm, 0x00a000ff, 0x000000ff, viGetWidth(), viGetWidth(), 0, 0);
+#endif
 #endif
 		}
 
@@ -1759,6 +1711,7 @@ struct mphead g_MpBeauHeads[] = {
 
 struct mphead g_MpHeads[] = {
 	// head, require feature
+#ifdef PLATFORM_N64
 	{ /*0x00*/ HEAD_DARK_COMBAT,  0                          },
 	{ /*0x01*/ HEAD_DARK_FROCK,   MPFEATURE_CHR_CI           },
 	{ /*0x02*/ HEAD_DARKAQUA,     MPFEATURE_CHR_PELAGIC      },
@@ -1836,9 +1789,87 @@ struct mphead g_MpHeads[] = {
 	{ /*0x49*/ HEAD_MOTO,         0                          },
 #endif
 	{ /*0x4a*/ HEAD_WINNER,       0                          },
+#else // GoldenEye X Mod
+	{ /*0x00*/ HEAD_CARRINGTON,   0    },
+	{ /*0x01*/ HEAD_ROSS,         0    },
+	{ /*0x02*/ HEAD_PRYCE,        0    },
+	{ /*0x03*/ HEAD_MRBLONDE,     0    },
+	{ /*0x04*/ HEAD_CASSANDRA,    0    },
+	{ /*0x05*/ HEAD_SILKE,        0    },
+	{ /*0x06*/ HEAD_GRAHAM,       0    },
+	{ /*0x07*/ HEAD_SMITH,        0    },
+	{ /*0x08*/ HEAD_ALEX,         0    },
+	{ /*0x09*/ HEAD_GARETH,       0    },
+	{ /*0x0a*/ HEAD_SECRETARY,    0    },
+	{ /*0x0b*/ HEAD_ROBERT,       0    },
+	{ /*0x0c*/ HEAD_MARK2,        0    },
+	{ /*0x0d*/ HEAD_FEM_GUARD,    0    },
+	{ /*0x0e*/ HEAD_FEM_GUARD2,   0    },
+	{ /*0x0f*/ HEAD_DARK_SNOW,    0    },
+	{ /*0x10*/ HEAD_PRESIDENT,    0    },
+	{ /*0x11*/ HEAD_ANDY_R,       0    },
+	{ /*0x12*/ HEAD_STEVE_K,      0    },
+	{ /*0x13*/ HEAD_CARTER,       0    },
+	{ /*0x14*/ HEAD_PEER_S,       0    },
+	{ /*0x15*/ HEAD_BEN_R,        0    },
+	{ /*0x16*/ HEAD_SHAUN,        0    },
+	{ /*0x17*/ HEAD_SCOTT_H,      0    },
+	{ /*0x18*/ HEAD_SANCHEZ,      0    },
+	{ /*0x19*/ HEAD_BEAU5,        0    },
+	{ /*0x1a*/ HEAD_DARKAQUA,     0    },
+	{ /*0x1b*/ HEAD_BEAU4,        0    },
+	{ /*0x1c*/ HEAD_KEN,          0    },
+	{ /*0x1d*/ HEAD_BEAU6,        0    },
+	{ /*0x1e*/ HEAD_VD,           0    },
+	{ /*0x1f*/ HEAD_PENNY,        0    },
+	{ /*0x20*/ HEAD_BEAU2,        0    },
+	{ /*0x21*/ HEAD_EILEEN_H,     0    },
+	{ /*0x22*/ HEAD_DDSNIPER,     0    },
+	{ /*0x23*/ HEAD_BEAU3,        0    },
+	{ /*0x24*/ HEAD_GRIFFEY,      0    },
+	{ /*0x25*/ HEAD_MOTO,         0    },
+	{ /*0x26*/ HEAD_KEITH,        0    },
+	{ /*0x27*/ HEAD_WINNER,       0    },
+	{ /*0x28*/ HEAD_A51FACEPLATE, 0    },
+	{ /*0x29*/ HEAD_ELVIS_GOGS,   0    },
+	{ /*0x2a*/ HEAD_STEVEM,       0    },
+	{ /*0x2b*/ HEAD_JOEL,         0    },
+	{ /*0x2c*/ HEAD_TIM,          0    },
+	{ /*0x2d*/ HEAD_GRANT,        0    },
+	{ /*0x2e*/ HEAD_ROBIN,        0    },
+	{ /*0x2f*/ HEAD_JULIANNE,     0    },
+	{ /*0x30*/ HEAD_LAURA,        0    },
+	{ /*0x31*/ HEAD_DAVEC,        0    },
+	{ /*0x32*/ HEAD_COOK,         0    },
+	{ /*0x33*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x34*/ HEAD_DARK_COMBAT,  0    },
+	{ /*0x35*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x36*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x37*/ HEAD_JONATHAN,     0    },
+	{ /*0x38*/ HEAD_ELVIS,        0    },
+	{ /*0x39*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x3a*/ HEAD_GREY,         0    },
+	{ /*0x3b*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x3c*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x3d*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x3e*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x3f*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x40*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x41*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x42*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x43*/ HEAD_DUNCAN2,      0xff },
+	{ /*0x44*/ HEAD_BIOTECH,      0    },
+	{ /*0x45*/ HEAD_DARK_FROCK,   0    },
+	{ /*0x46*/ HEAD_NEIL2,        0    },
+	{ /*0x47*/ HEAD_TRENT,        0    },
+	{ /*0x48*/ HEAD_MURCHIE,      0    },
+	{ /*0x49*/ HEAD_JON,          0    },
+	{ /*0x4a*/ HEAD_WONG,         0xff },
+#endif
 };
 
 u32 g_BotHeads[] = {
+#ifdef PLATFORM_N64
 	MPHEAD_JON,
 	MPHEAD_BEAU1,
 	MPHEAD_ROSS,
@@ -1894,32 +1925,88 @@ u32 g_BotHeads[] = {
 #if VERSION != VERSION_JPN_FINAL
 	MPHEAD_MOTO,
 #endif
+#else // GoldenEye X Mod
+	MPHEAD_DARK_COMBAT,
+	MPHEAD_DARK_FROCK,
+	MPHEAD_DARKAQUA,
+	MPHEAD_DARK_SNOW,
+	MPHEAD_ELVIS,
+	MPHEAD_ELVIS_GOGS,
+	MPHEAD_CARRINGTON,
+	MPHEAD_MRBLONDE,
+	MPHEAD_CASSANDRA,
+	MPHEAD_TRENT,
+	MPHEAD_JONATHAN,
+	MPHEAD_VD,
+	MPHEAD_PRESIDENT,
+	MPHEAD_DDSHOCK,
+	MPHEAD_BIOTECH,
+	MPHEAD_DDSNIPER,
+	MPHEAD_A51FACEPLATE,
+	MPHEAD_SECRETARY,
+	MPHEAD_FEM_GUARD,
+	MPHEAD_FEM_GUARD2,
+	MPHEAD_MAIAN_S,
+	MPHEAD_JON,
+	MPHEAD_BEAU1,
+	MPHEAD_ROSS,
+	MPHEAD_MARK2,
+	MPHEAD_CHRIST,
+	MPHEAD_RUSS,
+	MPHEAD_DARLING,
+	MPHEAD_BRIAN,
+	MPHEAD_JAMIE,
+	MPHEAD_DUNCAN2,
+	MPHEAD_KEITH,
+	MPHEAD_STEVEM,
+	MPHEAD_GRANT,
+	MPHEAD_PENNY,
+	MPHEAD_DAVEC,
+	MPHEAD_JONES,
+	MPHEAD_GRAHAM,
+	MPHEAD_ROBERT,
+	MPHEAD_NEIL2,
+	MPHEAD_SHAUN,
+	MPHEAD_ROBIN,
+	MPHEAD_COOK,
+	MPHEAD_PRYCE,
+	MPHEAD_SILKE,
+	MPHEAD_SMITH,
+	MPHEAD_GARETH,
+	MPHEAD_MURCHIE,
+	MPHEAD_WONG,
+	MPHEAD_CARTER,
+	MPHEAD_TINTIN,
+	MPHEAD_CHRIST,
+	MPHEAD_SECRETARY,
+#endif
 };
 
 struct botprofile g_BotProfiles[] = {
 	// type,           difficulty,      name,       body,                 require feature
-	{ BOTTYPE_GENERAL, BOTDIFF_MEAT,    L_MISC_088, MPBODY_DD_GUARD,      0                         },
-	{ BOTTYPE_GENERAL, BOTDIFF_EASY,    L_MISC_089, MPBODY_DD_SECGUARD,   0                         },
-	{ BOTTYPE_GENERAL, BOTDIFF_NORMAL,  L_MISC_090, MPBODY_DD_SHOCK_INF,  0                         },
-	{ BOTTYPE_GENERAL, BOTDIFF_HARD,    L_MISC_091, MPBODY_DDSHOCK,       MPFEATURE_BOTDIFF_HARD    },
-	{ BOTTYPE_GENERAL, BOTDIFF_PERFECT, L_MISC_092, MPBODY_STRIPES,       MPFEATURE_BOTDIFF_PERFECT },
-	{ BOTTYPE_GENERAL, BOTDIFF_DARK,    L_MISC_093, MPBODY_MOORE,         MPFEATURE_BOTDIFF_DARK    },
-	{ BOTTYPE_PEACE,   BOTDIFF_NORMAL,  L_MISC_094, MPBODY_DD_LABTECH,    0                         },
-	{ BOTTYPE_SHIELD,  BOTDIFF_NORMAL,  L_MISC_095, MPBODY_G5_SWAT_GUARD, 0                         },
-	{ BOTTYPE_ROCKET,  BOTDIFF_NORMAL,  L_MISC_096, MPBODY_G5_GUARD,      0                         },
-	{ BOTTYPE_KAZE,    BOTDIFF_NORMAL,  L_MISC_097, MPBODY_PRES_SECURITY, 0                         },
-	{ BOTTYPE_FIST,    BOTDIFF_NORMAL,  L_MISC_098, MPBODY_PELAGIC_GUARD, 0                         },
-	{ BOTTYPE_PREY,    BOTDIFF_NORMAL,  L_MISC_099, MPBODY_DDSHOCK,       0                         },
-	{ BOTTYPE_COWARD,  BOTDIFF_NORMAL,  L_MISC_100, MPBODY_PRESIDENT,     0                         },
-	{ BOTTYPE_JUDGE,   BOTDIFF_NORMAL,  L_MISC_101, MPBODY_STEWARD,       0                         },
-	{ BOTTYPE_FEUD,    BOTDIFF_NORMAL,  L_MISC_102, MPBODY_NSA_LACKEY,    0                         },
-	{ BOTTYPE_SPEED,   BOTDIFF_NORMAL,  L_MISC_103, MPBODY_MRBLONDE,      0                         },
-	{ BOTTYPE_TURTLE,  BOTDIFF_NORMAL,  L_MISC_104, MPBODY_CARRINGTON,    0                         },
-	{ BOTTYPE_VENGE,   BOTDIFF_NORMAL,  L_MISC_105, MPBODY_ALASKAN_GUARD, 0                         },
+	{ BOTTYPE_GENERAL, BOTDIFF_MEAT,    L_MISC_088, MPBODY_TRENT,         0                         },
+	{ BOTTYPE_GENERAL, BOTDIFF_EASY,    L_MISC_089, MPBODY_G5_SWAT_GUARD, 0                         },
+	{ BOTTYPE_GENERAL, BOTDIFF_NORMAL,  L_MISC_090, MPBODY_DDSHOCK,       0                         },
+	{ BOTTYPE_GENERAL, BOTDIFF_HARD,    L_MISC_091, MPBODY_A51TROOPER,    MPFEATURE_BOTDIFF_HARD    },
+	{ BOTTYPE_GENERAL, BOTDIFF_PERFECT, L_MISC_092, MPBODY_A51AIRMAN,     MPFEATURE_BOTDIFF_PERFECT },
+	{ BOTTYPE_GENERAL, BOTDIFF_DARK,    L_MISC_093, MPBODY_CONNERY   ,    MPFEATURE_BOTDIFF_DARK    },
+	{ BOTTYPE_PEACE,   BOTDIFF_NORMAL,  L_MISC_094, MPBODY_CIFEMTECH,     0                         },
+	{ BOTTYPE_SHIELD,  BOTDIFF_NORMAL,  L_MISC_095, MPBODY_DD_GUARD,      0                         },
+	{ BOTTYPE_ROCKET,  BOTDIFF_NORMAL,  L_MISC_096, MPBODY_JONATHAN,      0                         },
+	{ BOTTYPE_KAZE,    BOTDIFF_NORMAL,  L_MISC_097, MPBODY_FBIGUY,        0                         },
+	{ BOTTYPE_FIST,    BOTDIFF_NORMAL,  L_MISC_098, MPBODY_OFFICEWORKER,  0                         },
+	{ BOTTYPE_PREY,    BOTDIFF_NORMAL,  L_MISC_099, MPBODY_CIAGUY,        0                         },
+	{ BOTTYPE_COWARD,  BOTDIFF_NORMAL,  L_MISC_100, MPBODY_NEGOTIATOR,    0                         },
+	{ BOTTYPE_JUDGE,   BOTDIFF_NORMAL,  L_MISC_101, MPBODY_CILABTECH,     0                         },
+	{ BOTTYPE_FEUD,    BOTDIFF_NORMAL,  L_MISC_102, MPBODY_OVERALL,       0                         },
+	{ BOTTYPE_SPEED,   BOTDIFF_NORMAL,  L_MISC_103, MPBODY_FEM_GUARD,     0                         },
+	{ BOTTYPE_TURTLE,  BOTDIFF_NORMAL,  L_MISC_104, MPBODY_DD_SECGUARD,   0                         },
+	{ BOTTYPE_VENGE,   BOTDIFF_NORMAL,  L_MISC_105, MPBODY_DARKAQUALUNG,  0                         },
 };
 
 struct mpbody g_MpBodies[] = {
 	// global body ID,                name,            head,             require feature
+#ifdef PLATFORM_N64
 	/*0x00*/ { BODY_DARK_COMBAT,      L_OPTIONS_016,   HEAD_DARK_COMBAT, 0                          },
 	/*0x01*/ { BODY_DARK_TRENCH,      L_OPTIONS_017,   HEAD_DARK_COMBAT, MPFEATURE_CHR_JOTRENCH     },
 	/*0x02*/ { BODY_DARK_FROCK,       L_OPTIONS_018,   HEAD_DARK_FROCK,  MPFEATURE_CHR_CI           },
@@ -1981,9 +2068,73 @@ struct mpbody g_MpBodies[] = {
 	/*0x3a*/ { BODY_MOORE,            L_OPTIONS_070,   1000,             MPFEATURE_8BOTS            },
 	/*0x3b*/ { BODY_DALTON,           L_OPTIONS_070,   1000,             MPFEATURE_8BOTS            },
 	/*0x3c*/ { BODY_DJBOND,           L_OPTIONS_070,   1000,             MPFEATURE_8BOTS            },
+#else // GoldenEye X Mod
+	/*0x00*/ { BODY_DJBOND,           L_OPTIONS_070,   HEAD_CARRINGTON,   0    }, // Bond (Tuxedo)
+	/*0x01*/ { BODY_AREA51GUARD,      L_OPTIONS_064,   HEAD_ROSS,         0    }, // Bond (Formal)
+	/*0x02*/ { BODY_SECRETARY,        L_OPTIONS_053,   HEAD_ROSS,         0    }, // Bond (Stealth)
+	/*0x03*/ { BODY_CASSANDRA,        L_OPTIONS_027,   HEAD_ROSS,         0    }, // Bond (Arctic)
+	/*0x04*/ { BODY_DD_SECGUARD,      L_OPTIONS_042,   HEAD_ROSS,         0    }, // Bond (Jungle)
+	/*0x05*/ { BODY_OVERALL,          L_OPTIONS_041,   HEAD_PRYCE,        0    }, // Natalya (Russia)
+	/*0x06*/ { BODY_NEGOTIATOR,       L_OPTIONS_044,   HEAD_PRYCE,        0    }, // Natalya (Cuba)
+	/*0x07*/ { BODY_G5_GUARD,         L_OPTIONS_031,   HEAD_MRBLONDE,     0    }, // Trevelyan (006)
+	/*0x08*/ { BODY_CARRINGTON,       L_OPTIONS_029,   HEAD_MRBLONDE,     0    }, // Trevelyan (Janus)
+	/*0x09*/ { BODY_MRBLONDE,         L_OPTIONS_030,   HEAD_CASSANDRA,    0    }, // Xenia
+	/*0x0a*/ { BODY_TRENT,            L_OPTIONS_046,   HEAD_SILKE,        0    }, // Ourumov
+	/*0x0b*/ { BODY_LABTECH,          L_OPTIONS_055,   HEAD_GRAHAM,       0    }, // Boris
+	/*0x0c*/ { BODY_STRIPES,          L_OPTIONS_047,   HEAD_SMITH,        0    }, // Valentin
+	/*0x0d*/ { BODY_OFFICEWORKER,     L_OPTIONS_038,   HEAD_ALEX,         0    }, // Mishkin
+	/*0x0e*/ { BODY_STEWARDESS_COAT,  L_OPTIONS_063,   HEAD_GARETH,       0    }, // May Day
+	/*0x0f*/ { BODY_CARREVENINGSUIT,  L_OPTIONS_028,   HEAD_SECRETARY,    0    }, // Jaws
+	/*0x10*/ { BODY_STEWARD,          L_OPTIONS_061,   HEAD_ROBERT,       0    }, // Oddjob
+	/*0x11*/ { BODY_DDSNIPER,         L_OPTIONS_045,   HEAD_MARK2,        0    }, // Baron Samedi
+	/*0x12*/ { BODY_BIOTECH,          L_OPTIONS_058,   HEAD_SANCHEZ,      0    }, // Russian Soldier
+	/*0x13*/ { BODY_PELAGIC_GUARD,    L_OPTIONS_068,   HEAD_SHAUN,        0    }, // Russian Infantry
+	/*0x14*/ { BODY_CILABTECH,        L_OPTIONS_033,   HEAD_SCOTT_H,      0    }, // Russian Commandant
+	/*0x15*/ { BODY_DD_LABTECH,       L_OPTIONS_057,   HEAD_BEAU5,        0    }, // Male Scientist
+	/*0x16*/ { BODY_CIFEMTECH,        L_OPTIONS_034,   HEAD_JULIANNE,     0    }, // Female Scientist
+	/*0x17*/ { BODY_PRES_SECURITY,    L_OPTIONS_066,   HEAD_KEN,          0    }, // Janus Marine
+	/*0x18*/ { BODY_PRESIDENT,        L_OPTIONS_050,   HEAD_DARKAQUA,     0    }, // Naval Officer
+	/*0x19*/ { BODY_PILOTAF1,         L_OPTIONS_060,   HEAD_FEM_GUARD,    0    }, // Helicopter Pilot
+	/*0x1a*/ { BODY_JONATHAN,         L_OPTIONS_032,   HEAD_PENNY,        0    }, // St. Petersburg Guard
+	/*0x1b*/ { BODY_FEM_GUARD,        L_OPTIONS_037,   HEAD_LAURA,        0    }, // Female Civilian (Jeans)
+	/*0x1c*/ { BODY_FEMLABTECH,       L_OPTIONS_056,   HEAD_DAVEC,        0    }, // Female Civilian (Skirt)
+	/*0x1d*/ { BODY_PRESIDENT_CLONE2, L_OPTIONS_067,   HEAD_VD,           0    }, // Male Civilian (Vest)
+	/*0x1e*/ { BODY_FBIGUY,           L_OPTIONS_049,   HEAD_BEAU6,        0    }, // Male Civilian (Plaid)
+	/*0x1f*/ { BODY_A51TROOPER,       L_OPTIONS_051,   HEAD_BEAU3,        0    }, // Male Civilian (Red)
+	/*0x20*/ { BODY_A51AIRMAN,        L_OPTIONS_052,   HEAD_STEVEM,       0    }, // Male Civilian (Blue)
+	/*0x21*/ { BODY_CIAGUY,           L_OPTIONS_048,   HEAD_GRIFFEY,      0    }, // Male Civilian (Grey)
+	/*0x22*/ { BODY_DD_GUARD,         L_OPTIONS_039,   HEAD_TIM,          0    }, // Siberian Guard (Brown)
+	/*0x23*/ { BODY_OFFICEWORKER,     L_OPTIONS_069,   HEAD_KEITH,        0    }, // Siberian Guard (Black)
+	/*0x24*/ { BODY_DD_SHOCK_INF,     L_OPTIONS_040,   HEAD_MOTO,         0    }, // Arctic Commando
+	/*0x25*/ { BODY_ALASKAN_GUARD,    L_OPTIONS_059,   HEAD_FEM_GUARD2,   0    }, // Siberian Special Forces
+	/*0x26*/ { BODY_OFFICEWORKER2,    L_OPTIONS_043,   HEAD_JOEL,         0    }, // Jungle Commando
+	/*0x27*/ { BODY_G5_SWAT_GUARD,    L_OPTIONS_054,   HEAD_A51FACEPLATE, 0    }, // Janus Special Forces
+	/*0x28*/ { BODY_NSA_LACKEY,       L_OPTIONS_065,   HEAD_WINNER,       0    }, // Male Moonraker Elite
+	/*0x29*/ { BODY_DARKLAB,          L_OPTIONS_024,   HEAD_COOK,         0    }, // Female Moonraker Elite
+	/*0x2a*/ { BODY_STEWARDESS,       L_OPTIONS_062,   HEAD_LAURA,        0    }, // Rosika
+	/*0x2b*/ { BODY_DARK_LEATHER,     L_OPTIONS_018,   HEAD_BEAU1,        0xff }, // Developer
+	/*0x2c*/ { BODY_DARK_COMBAT,      L_OPTIONS_016,   HEAD_DARK_COMBAT,  0    }, // Female Special Operative
+	/*0x2d*/ { BODY_CISOLDIER,        L_OPTIONS_035,   HEAD_JONATHAN,     0    }, // Male Special Operative
+	/*0x2e*/ { BODY_ELVISWAISTCOAT,   L_MPWEAPONS_158, HEAD_ELVIS,        0    }, // Elton
+	/*0x2f*/ { BODY_TESTCHR,          L_OPTIONS_036,   HEAD_GREY,         0    }, // Assault Trooper
+	/*0x30*/ { BODY_DARK_TRENCH,      L_OPTIONS_017,   HEAD_DARK_COMBAT,  0xff }, // Bond (Classic)
+	/*0x31*/ { BODY_DARK_FROCK,       L_OPTIONS_018,   HEAD_DARK_FROCK,   0xff }, // Developer
+	/*0x32*/ { BODY_DARK_RIPPED,      L_OPTIONS_019,   HEAD_DARK_FROCK,   0xff }, // Developer
+	/*0x33*/ { BODY_DARK_AF1,         L_OPTIONS_020,   HEAD_DARK_COMBAT,  0xff }, // Baron Samedi (Death)
+	/*0x34*/ { BODY_DARKWET,          L_OPTIONS_021,   HEAD_DARKAQUA,     0xff }, // Santa Claus
+	/*0x35*/ { BODY_DARKAQUALUNG,     L_OPTIONS_022,   HEAD_DARKAQUA,     0xff }, // Joanna Aqualung
+	/*0x36*/ { BODY_DARKSNOW,         L_OPTIONS_020,   HEAD_BIOTECH,      0    }, // Baron Samedi (Death)
+	/*0x37*/ { BODY_DARK_TRENCH,      L_OPTIONS_021,   HEAD_DARK_FROCK,   0    }, // Santa Claus
+	/*0x38*/ { BODY_ELVIS1,           L_OPTIONS_026,   HEAD_ELVIS,        0xff }, // Maian
+	/*0x39*/ { BODY_CONNERY,          L_OPTIONS_017,   HEAD_NEIL2,        0    }, // Bond (Classic)
+	/*0x3a*/ { BODY_DARK_NEGOTIATOR,  L_OPTIONS_017,   HEAD_TRENT,        0    }, // Bond (Classic)
+	/*0x3b*/ { BODY_MOORE,            L_OPTIONS_017,   HEAD_MURCHIE,      0    }, // Bond (Classic)
+	/*0x3c*/ { BODY_DALTON,           L_OPTIONS_017,   HEAD_JON,          0    }, // Bond (Classic)
+#endif
 };
 
 u32 g_MpMaleHeads[] = {
+#ifdef PLATFORM_N64
 	HEAD_JON,
 	HEAD_BEAU1,
 	HEAD_ROSS,
@@ -2029,6 +2180,56 @@ u32 g_MpMaleHeads[] = {
 	HEAD_JOEL,
 #if VERSION != VERSION_JPN_FINAL
 	HEAD_MOTO,
+#endif
+#else // GoldenEye X Mod
+	HEAD_SHAUN,
+	HEAD_BEAU2,
+	HEAD_EILEEN_H,
+	HEAD_SCOTT_H,
+	HEAD_SANCHEZ,
+	HEAD_DARKAQUA,
+	HEAD_DDSNIPER,
+	HEAD_BEAU3,
+	HEAD_BEAU4,
+	HEAD_BEAU5,
+	HEAD_BEAU6,
+	HEAD_GRIFFEY,
+	HEAD_MOTO,
+	HEAD_KEITH,
+	HEAD_WINNER,
+	HEAD_A51FACEPLATE,
+	HEAD_ELVIS_GOGS,
+	HEAD_STEVEM,
+	HEAD_VD,
+	HEAD_KEN,
+	HEAD_JOEL,
+	HEAD_TIM,
+	HEAD_ROBIN,
+	HEAD_PENNY,
+	HEAD_FEM_GUARD,
+	HEAD_FEM_GUARD2,
+	HEAD_CARRINGTON,
+	HEAD_ROSS,
+	HEAD_MRBLONDE,
+	HEAD_SILKE,
+	HEAD_GRAHAM,
+	HEAD_SMITH,
+	HEAD_ALEX,
+	HEAD_SECRETARY,
+	HEAD_ROBERT,
+	HEAD_MARK2,
+	HEAD_ANDY_R,
+	HEAD_BEN_R,
+	HEAD_STEVE_K,
+	HEAD_PEER_S,
+	HEAD_CARTER,
+	HEAD_JULIANNE,
+	HEAD_LAURA,
+	HEAD_DAVEC,
+	HEAD_COOK,
+	HEAD_PRYCE,
+	HEAD_CASSANDRA,
+	HEAD_GARETH,
 #endif
 };
 
@@ -2773,7 +2974,7 @@ void mpCalculateLockIfLastWinnerOrLoser(void)
 
 struct mptrack g_MpTracks[] = {
 	// Audio ID, duration, name, unlock after stage
-	/*0x00*/ { MUSIC_DARK_COMBAT,     160, L_MISC_124, -1 }, // "Dark Combat"
+#ifdef PLATFORM_N64	/*0x00*/ { MUSIC_DARK_COMBAT,     160, L_MISC_124, -1 }, // "Dark Combat"
 	/*0x01*/ { MUSIC_SKEDAR_MYSTERY,  170, L_MISC_125, -1 }, // "Skedar Mystery"
 	/*0x02*/ { MUSIC_CI_OPERATIVE,    170, L_MISC_126, -1 }, // "CI Operative"
 	/*0x03*/ { MUSIC_DATADYNE_ACTION, 180, L_MISC_127, -1 }, // "dataDyne Action"
@@ -2819,6 +3020,52 @@ struct mptrack g_MpTracks[] = {
 	/*0x2a*/ { MUSIC_SKEDARRUINS_KING,120, L_MISC_261, SOLOSTAGEINDEX_SKEDARRUINS }, // "Skedar Warrior" (Skedar Leader)
 #else
 	/*0x2a*/ { MUSIC_SKEDARRUINS_KING,120, L_MISC_041, SOLOSTAGEINDEX_SKEDARRUINS }, // "E R R O R" (can't find a good approximation for Skedar Leader)
+#endif
+#else // GoldenEye X Mod
+	/*0x00*/ { MUSIC_DARK_COMBAT,     127, L_MISC_124, -1 }, // Dam
+	/*0x01*/ { MUSIC_SKEDAR_MYSTERY,  124, L_MISC_125, -1 }, // Dam X
+	/*0x02*/ { MUSIC_CI_OPERATIVE,    120, L_MISC_126, -1 }, // Facility
+	/*0x03*/ { MUSIC_DATADYNE_ACTION, 120, L_MISC_127, -1 }, // Facility X
+	/*0x04*/ { MUSIC_MAIAN_TEARS,     120, L_MISC_128, -1 }, // Runway
+	/*0x05*/ { MUSIC_ALIEN_CONFLICT,  128, L_MISC_129, -1 }, // Runway X
+	/*0x06*/ { MUSIC_CI,              127, L_MISC_130, -1 }, // Surface
+	/*0x07*/ { MUSIC_DEFECTION,       128, L_MISC_131, -1 }, // Bunker
+	/*0x08*/ { MUSIC_DEFECTION_X,     123, L_MISC_132, -1 }, // Bunker X
+	/*0x09*/ { MUSIC_INVESTIGATION,   132, L_MISC_133, -1 }, // Silo
+	/*0x0a*/ { MUSIC_INVESTIGATION_X, 131, L_MISC_134, -1 }, // Silo X
+	/*0x0b*/ { MUSIC_EXTRACTION,      127, L_MISC_135, -1 }, // Frigate
+	/*0x0c*/ { MUSIC_EXTRACTION_X,    125, L_MISC_136, -1 }, // Frigate X
+	/*0x0d*/ { MUSIC_VILLA,           124, L_MISC_137, -1 }, // Surface II
+	/*0x0e*/ { MUSIC_VILLA_X,         122, L_MISC_138, -1 }, // Surface II X
+	/*0x0f*/ { MUSIC_CHICAGO,         128, L_MISC_139, -1 }, // Bunker II
+	/*0x10*/ { MUSIC_CHICAGO_X,       123, L_MISC_140, -1 }, // Bunker II X
+	/*0x11*/ { MUSIC_G5,              124, L_MISC_141, -1 }, // Statue
+	/*0x12*/ { MUSIC_G5_X,            126, L_MISC_142, -1 }, // Statue X
+	/*0x13*/ { MUSIC_INFILTRATION,    123, L_MISC_143, -1 }, // Archives
+	/*0x14*/ { MUSIC_INFILTRATION_X,  125, L_MISC_144, -1 }, // Archives X
+	/*0x15*/ { MUSIC_RESCUE,          123, L_MISC_145, -1 }, // Streets
+	/*0x16*/ { MUSIC_RESCUE_X,        121, L_MISC_146, -1 }, // Streets X
+	/*0x17*/ { MUSIC_ESCAPE,          129, L_MISC_147, -1 }, // Depot
+	/*0x18*/ { MUSIC_ESCAPE_X,        131, L_MISC_148, -1 }, // Depot X
+	/*0x19*/ { MUSIC_AIRBASE,         130, L_MISC_149, -1 }, // Train
+	/*0x1a*/ { MUSIC_AIRBASE_X,       126, L_MISC_150, -1 }, // Train X
+	/*0x1b*/ { MUSIC_AIRFORCEONE,     133, L_MISC_151, -1 }, // Jungle
+	/*0x1c*/ { MUSIC_AIRFORCEONE_X,   125, L_MISC_152, -1 }, // Jungle X
+	/*0x1d*/ { MUSIC_CRASHSITE,       120, L_MISC_153, -1 }, // Control
+	/*0x1e*/ { MUSIC_CRASHSITE_X,     128, L_MISC_154, -1 }, // Control X
+	/*0x1f*/ { MUSIC_PELAGIC,         127, L_MISC_155, -1 }, // Caverns
+	/*0x20*/ { MUSIC_PELAGIC_X,       128, L_MISC_156, -1 }, // Caverns X
+	/*0x21*/ { MUSIC_DEEPSEA,         126, L_MISC_157, -1 }, // Cradle
+	/*0x22*/ { MUSIC_DEEPSEA_X,       126, L_MISC_158, -1 }, // Cradle X
+	/*0x23*/ { MUSIC_DEFENSE,         131, L_MISC_159, -1 }, // Aztec
+	/*0x24*/ { MUSIC_DEFENSE_X,       128, L_MISC_160, -1 }, // Aztec X
+	/*0x25*/ { MUSIC_ATTACKSHIP,      133, L_MISC_161, -1 }, // Egyptian
+	/*0x26*/ { MUSIC_ATTACKSHIP_X,    125, L_MISC_162, -1 }, // Egyptian X
+	/*0x27*/ { MUSIC_SKEDARRUINS,     128, L_MISC_163, -1 }, // Citadel
+	/*0x28*/ { MUSIC_SKEDARRUINS_X,   133, L_MISC_164, -1 }, // Perimeter
+	/*0x29*/ { MUSIC_CRASHSITE_INTRO, 133, L_MISC_435, -1 }, // Elevator 1
+	/*0x2a*/ { MUSIC_PELAGIC_INTRO,   125, L_MISC_436, -1 }, // Elevator 2
+	/*0x2b*/ { MUSIC_CREDITS,         121, L_MISC_165, -1 }, // End Credits
 #endif
 };
 
@@ -3725,6 +3972,7 @@ s32 mpplayerfileLoad(s32 playernum, s32 device, s32 fileid, u16 deviceserial)
 			g_PlayerConfigsArray[playernum].fileguid.deviceserial = deviceserial;
 
 			mpplayerfileLoadWad(playernum, &buffer, 1);
+
 			g_PlayerConfigsArray[playernum].handicap = 0x80;
 			return 0;
 		}
@@ -3918,54 +4166,25 @@ void mp0f18dec4(s32 slot)
 #endif
 }
 
-static u64 packWeaponSetRandomFilters()
-{
-	u64 packed = 0;
-	for (int i = 0; i < NUM_MPWEAPONS; ++i) {
-		packed |= g_MpWeaponSetRandomFilters[i] != 0 ? (1LL << i) : 0;
-	}
-
-	return packed;
-}
-
-static void unpackWeaponSetRandomFilters(u64 packed)
-{
-	for (int i = 0; i < NUM_MPWEAPONS; ++i) {
-		g_MpWeaponSetRandomFilters[i] = (packed & (1LL << i)) != 0;
-	}
-}
-
 void mpsetupfileLoadWad(struct savebuffer *buffer, u8 version)
 {
 	s32 i;
 	s32 j;
 
-	if (version > 0) {
+	if (version == 0) {
+		savebufferReadString(buffer, g_MpSetup.name, false);
+	} else {
 		savebufferReadString_ext(buffer, g_MpSetup.name, false, MPSETUP_MAXNAME + 1);
 	}
-	else {
-		savebufferReadString(buffer, g_MpSetup.name, false);
-	}
-
 	savebufferReadBits(buffer, 4);
 
 	g_MpSetup.stagenum = savebufferReadBits(buffer, 7);
 	g_MpSetup.scenario = savebufferReadBits(buffer, 3);
 
-	// version == 0 means we're only reading to convert, so no actions are needed
-	if (version > 0) {
-		scenarioInit();
-	}
-
+	scenarioInit();
 	scenarioReadSave(buffer, version);
 
-	if (version > 0) {
-		g_MpSetup.options = savebufferReadBits(buffer, 32);
-	}
-	else {
-		g_MpSetup.options = savebufferReadBits(buffer, 21);
-	}
-
+	g_MpSetup.options = savebufferReadBits(buffer, 21);
 	g_MpSetup.chrslots &= 0x000f;
 
 	for (i = 0; i < MAX_BOTS; i++) {
@@ -3986,20 +4205,13 @@ void mpsetupfileLoadWad(struct savebuffer *buffer, u8 version)
 		g_BotConfigsArray[i].base.team = savebufferReadBits(buffer, 3);
 	}
 
-	if (version > 0) {
-		mpGenerateBotNames();
-	}
+	mpGenerateBotNames();
 
 	for (i = 0; i < ARRAYCOUNT(g_MpSetup.weapons); i++) {
 		g_MpSetup.weapons[i] = savebufferReadBits(buffer, 7);
 	}
 
-	if (version > 0) {
-		u64 wpnRndPacked = savebufferReadBits(buffer, 64);
-		unpackWeaponSetRandomFilters(wpnRndPacked);
-	}
-
-	g_MpWeaponSetNum = savebufferReadBits(buffer, 8);
+	func0f18913c();
 
 	g_MpSetup.timelimit = savebufferReadBits(buffer, 6);
 	g_MpSetup.scorelimit = savebufferReadBits(buffer, 7);
@@ -4032,7 +4244,7 @@ void mpsetupfileSaveWad(struct savebuffer *buffer)
 
 	scenarioWriteSave(buffer);
 
-	savebufferOr(buffer, g_MpSetup.options, 32);
+	savebufferOr(buffer, g_MpSetup.options, 21);
 
 	for (i = 0; i < MAX_BOTS; i++) {
 		savebufferOr(buffer, g_BotConfigsArray[i].type, 5);
@@ -4065,10 +4277,6 @@ void mpsetupfileSaveWad(struct savebuffer *buffer)
 		savebufferOr(buffer, g_MpSetup.weapons[i], 7);
 	}
 
-	u64 wpnRndPacked = packWeaponSetRandomFilters();
-	savebufferOr(buffer, wpnRndPacked, 64);
-	savebufferOr(buffer, g_MpWeaponSetNum, 8);
-
 	savebufferOr(buffer, g_MpSetup.timelimit, 6);
 	savebufferOr(buffer, g_MpSetup.scorelimit, 7);
 	savebufferOr(buffer, g_MpSetup.teamscorelimit, 9);
@@ -4082,13 +4290,65 @@ void mpsetupfileGetOverview(char *arg0, char *filename, u16 *numsims, u16 *stage
 {
 	struct savebuffer buffer;
 
-	savebufferWriteData(&buffer, arg0, 22);
+	savebufferWriteData(&buffer, arg0, 15);
 
-	savebufferReadString_ext(&buffer, filename, 0, MPSETUP_MAXNAME+1);
+	savebufferReadString(&buffer, filename, 0);
 
 	*numsims = savebufferReadBits(&buffer, 4);
 	*stagenum = savebufferReadBits(&buffer, 7);
 	*scenarionum = savebufferReadBits(&buffer, 3);
+}
+
+s32 mpsetupfileSave(s32 device, s32 fileid, u16 deviceserial)
+{
+	s32 ret;
+	s32 newfileid;
+	struct savebuffer buffer;
+
+	if (device >= 0) {
+		savebufferClear(&buffer);
+		mpsetupfileSaveWad(&buffer);
+		var80075bd0[1] = true;
+
+		ret = pakSaveAtGuid(device, fileid, PAKFILETYPE_MPSETUP, buffer.bytes, &newfileid, 0);
+
+		if (ret == 0) {
+			g_MpSetup.fileguid.fileid = newfileid;
+			g_MpSetup.fileguid.deviceserial = deviceserial;
+			return 0;
+		}
+
+		g_FilemgrLastPakError = ret;
+		return -1;
+	}
+
+	return -1;
+}
+
+s32 mpsetupfileLoad(s32 device, s32 fileid, u16 deviceserial)
+{
+	s32 ret;
+	struct savebuffer buffer;
+
+	if (device >= 0) {
+		savebufferClear(&buffer);
+		ret = pakReadBodyAtGuid(device, fileid, buffer.bytes, 0);
+
+		if (ret == 0) {
+			g_MpSetup.fileguid.fileid = fileid;
+			g_MpSetup.fileguid.deviceserial = deviceserial;
+
+			mpsetupfileLoadWad(&buffer, 1);
+
+			return 0;
+		}
+
+		g_FilemgrLastPakError = ret;
+
+		return -1;
+	}
+
+	return -1;
 }
 
 void func0f18e558(void)

@@ -496,7 +496,11 @@ extern struct menudialogdef g_MpQuickTeamScenarioMenuDialog;
 extern s32 var80087260;
 extern bool g_MpEnableMusicSwitching;
 extern struct mpweapon g_MpWeapons[NUM_MPWEAPONS];
+#ifndef PLATFORM_N64 // GoldenEye X Mod
+extern struct mphead g_MpHeads[75];
+#else
 extern struct mphead g_MpHeads[VERSION == VERSION_JPN_FINAL ? 74 : 75];
+#endif
 extern struct botprofile g_BotProfiles[18];
 extern struct mpbody g_MpBodies[61];
 extern struct mppreset g_MpPresets[];
