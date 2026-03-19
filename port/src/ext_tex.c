@@ -356,6 +356,8 @@ void extTexFree()
 
 s32 extTexInit()
 {
+	stbi_set_flip_vertically_on_load(true);
+
 	const char *path = fsFullPath(EXT_TEX_DIRNAME);
 	strcpy(extTexPath, path);
 
